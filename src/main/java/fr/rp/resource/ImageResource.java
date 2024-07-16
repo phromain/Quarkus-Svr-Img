@@ -25,7 +25,7 @@ public class ImageResource {
     @GET
     @Path("/{name}/{size}")
     @Produces({"image/jpeg",MediaType.TEXT_PLAIN})
-    @Operation(summary = "Retourne l'image à afficher", description = "Retourne l'image à afficher")
+    @Operation(summary = "Retourne l'image à afficher dans la taille demandé", description = "Retourne l'image à afficher dans la taille demandé")
     @APIResponse(responseCode = "200", description = "Image trouvée")
     @APIResponse(responseCode = "400", description = "Format non valide")
     @APIResponse(responseCode = "404", description = "Image non trouvée")
