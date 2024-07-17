@@ -32,13 +32,13 @@ public class ImageResource {
     @APIResponse(responseCode = "500", description = "Une erreur est survenue")
     public Response getImage(@PathParam("name") String name, @PathParam("size") String size) {
         try {
-            java.nio.file.Path imagePath = java.nio.file.Paths.get("src/images", name + ".jpg");
+            java.nio.file.Path imagePath = java.nio.file.Paths.get("/var/myapp/images", name + ".jpg");
 
-            if (!java.nio.file.Files.exists(imagePath)) {
+            if (!Files.exists(imagePath)) {
                 return Response.status(Response.Status.NOT_FOUND).entity("Image non trouvée").build();
             }
 
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            BufferedImage bimg = ImageIO.read(imagePath.toFile());
 
             int width, height;
             switch (size) {
@@ -55,7 +55,6 @@ public class ImageResource {
                     height = 1080;
                     break;
                 case "nm":
-                    BufferedImage bimg = ImageIO.read(imagePath.toFile());
                     width = bimg.getWidth();
                     height = bimg.getHeight();
                     break;
@@ -63,14 +62,13 @@ public class ImageResource {
                     return Response.status(Response.Status.BAD_REQUEST).entity("Taille non valide").build();
             }
 
-            Thumbnails.of(imagePath.toFile()).size(width, height).toOutputStream(os);
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            Thumbnails.of(bimg).size(width, height).outputFormat("JPEG").toOutputStream(os);
             return Response.ok(os.toByteArray()).build();
         } catch (IOException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Une erreur est survenue").build();
         }
     }
-
-
 
     @POST
     @Path("/{name}")
@@ -89,16 +87,19 @@ public class ImageResource {
                         .entity("Parametre Authentification manquant")
                         .build();
             }
-            if (apiKeyService.getClientByApiKey(apiKey).getStatus() != Response.Status.OK.getStatusCode()) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity("API-KEY non trouvé")
+
+            Response clientResponse = apiKeyService.getClientByApiKey(apiKey);
+
+            if (clientResponse.getStatus() != Response.Status.OK.getStatusCode()){
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity("API-KEY non valide")
                         .build();
             }
             if (!contentType.equals("image/png") && !contentType.equals("image/jpeg") && !contentType.equals("image/gif")) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Extension non prise en compte (uniquement JPEG, PNG et GIF").build();
             }
-            java.nio.file.Path imagePath = java.nio.file.Paths.get("src/images", name + ".jpg");
-            Files.write((java.nio.file.Path) imagePath, imageBytes);
+            java.nio.file.Path imagePath = java.nio.file.Paths.get("/var/myapp/images", name + ".jpg");
+            Files.write(imagePath, imageBytes);
             return Response.ok("Image enregistré").build();
         } catch (IOException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Une erreur est survenue").build();
@@ -124,18 +125,21 @@ public class ImageResource {
                         .entity("Parametre Authentification manquant")
                         .build();
             }
-            if (apiKeyService.getClientByApiKey(apiKey).getStatus() != Response.Status.OK.getStatusCode()) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity("API-KEY non trouvé")
+
+            Response clientResponse = apiKeyService.getClientByApiKey(apiKey);
+
+            if (clientResponse.getStatus() != Response.Status.OK.getStatusCode()){
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity("API-KEY non valide")
                         .build();
             }
             if (!contentType.equals("image/png") && !contentType.equals("image/jpeg") && !contentType.equals("image/gif")) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Extension non prise en compte (uniquement JPEG, PNG et GIF").build();
             }
 
-            java.nio.file.Path imagePath = java.nio.file.Paths.get("src/images", name + ".jpg");
+            java.nio.file.Path imagePath = java.nio.file.Paths.get("/var/myapp/images", name + ".jpg");
 
-            if (!java.nio.file.Files.exists(imagePath)) {
+            if (!Files.exists(imagePath)) {
                 return Response.status(Response.Status.NOT_FOUND).entity("Image non trouvée").build();
             }
 
@@ -147,7 +151,6 @@ public class ImageResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Une erreur est survenue").build();
         }
     }
-
 
     @DELETE
     @Path("/{name}")
@@ -165,19 +168,21 @@ public class ImageResource {
                         .entity("Parametre Authentification manquant")
                         .build();
             }
-            if (apiKeyService.getClientByApiKey(apiKey).getStatus() != Response.Status.OK.getStatusCode()) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity("API-KEY non trouvé")
+
+            Response clientResponse = apiKeyService.getClientByApiKey(apiKey);
+
+            if (clientResponse.getStatus() != Response.Status.OK.getStatusCode()){
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity("API-KEY non valide")
                         .build();
             }
+            java.nio.file.Path imagePath = java.nio.file.Paths.get("/var/myapp/images", name + ".jpg");
 
-            java.nio.file.Path imagePath = java.nio.file.Paths.get("src/images", name + ".jpg");
-
-            if (!java.nio.file.Files.exists(imagePath)) {
+            if (!Files.exists(imagePath)) {
                 return Response.status(Response.Status.NOT_FOUND).entity("Image non trouvée").build();
             }
 
-            java.nio.file.Files.delete(imagePath);
+            Files.delete(imagePath);
 
             return Response.ok("Image supprimée").build();
         } catch (IOException e) {

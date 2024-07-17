@@ -14,9 +14,10 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 public interface ApiKeyService {
 
     @GET
-    // http://localhost:8083/apikey/{apikey}
-    @Path("/{apikey}")
-    @Produces(MediaType.APPLICATION_JSON)
-    Response getClientByApiKey(@PathParam("apikey") String apikey);
+    // http://localhost:8083/apikey/key
+    @Path("/key")
+    @Produces(MediaType.TEXT_PLAIN)
+    Response getClientByApiKey(@HeaderParam("apikey") String apikey);
+
 
 }
